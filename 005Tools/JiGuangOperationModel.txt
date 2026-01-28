@@ -1,0 +1,229 @@
+    /// <summary>
+    /// 激光操作数据模型
+    /// </summary>
+    public class JiGuangOperationModel
+    {
+        /// <summary>
+        /// 操作类型
+        /// LASERQR_Change 激光状态修改  
+        /// Recipe_Switch 配方切换 
+        /// Machining_Mode 加工模式  
+        /// Recipe_Change 修改当前配方
+        /// </summary>
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        /// <summary>
+        /// 操作数据字典
+        /// </summary>
+        [JsonPropertyName("data")]
+        public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
+
+        /// <summary>
+        /// 将对象序列化为JSON字符串
+        /// </summary>
+        /// <returns>JSON格式的字符串</returns>
+        public string SerializeToJson()
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            return JsonSerializer.Serialize(this, options);
+        }
+
+        /// <summary>
+        /// 从JSON字符串反序列化为对象
+        /// </summary>
+        /// <param name="json">JSON字符串</param>
+        /// <returns>JiGuangOperationModel对象</returns>
+        public static JiGuangOperationModel? DeserializeFromJson(string json)
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            // 先反序列化
+            var model = JsonSerializer.Deserialize<JiGuangOperationModel>(json, options);
+
+            // 处理 Data 字典中的 JsonElement
+            if (model?.Data != null)
+            {
+                model.ConvertJsonElementsToRealTypes();
+            }
+
+            return model;
+        }
+
+        /// <summary>
+        /// 将字典中的 JsonElement 转换为实际类型
+        /// </summary>
+        private void ConvertJsonElementsToRealTypes()
+        {
+            var newData = new Dictionary<string, object>();
+
+            foreach (var kvp in Data)
+            {
+                if (kvp.Value is JsonElement jsonElement)
+                {
+                    newData[kvp.Key] = ConvertJsonElementToObject(jsonElement)!;
+                }
+                else
+                {
+                    newData[kvp.Key] = kvp.Value;
+                }
+            }
+
+            Data = newData;
+        }
+
+        /// <summary>
+        /// 将 JsonElement 转换为对应的 C# 对象
+        /// </summary>
+        private object? ConvertJsonElementToObject(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => element.GetString(),
+                JsonValueKind.Number =>
+                    element.TryGetDouble(out double doubleValue) ? doubleValue :
+                    element.TryGetInt32(out int intValue) ? intValue :
+                    element.TryGetInt64(out long longValue) ? longValue :
+                    (object)element.GetRawText(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                JsonValueKind.Object => ConvertJsonObjectToDictionary(element),
+                JsonValueKind.Array => ConvertJsonArrayToList(element),
+                _ => element.GetRawText()
+            };
+        }
+
+        /// <summary>
+        /// 将 JsonElement 对象转换为字典
+        /// </summary>
+        private Dictionary<string, object> ConvertJsonObjectToDictionary(JsonElement element)
+        {
+            var dict = new Dictionary<string, object>();
+            foreach (var property in element.EnumerateObject())
+            {
+                dict[property.Name] = ConvertJsonElementToObject(property.Value)!;
+            }
+            return dict;
+        }
+
+        /// <summary>
+        /// 将 JsonElement 数组转换为列表
+        /// </summary>
+        private List<object> ConvertJsonArrayToList(JsonElement element)
+        {
+            var list = new List<object>();
+            foreach (var item in element.EnumerateArray())
+            {
+                list.Add(ConvertJsonElementToObject(item)!);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 创建包含示例数据的激光操作实例
+        /// </summary>
+        /// <returns>JiGuangOperationModel实例</returns>
+        public static JiGuangOperationModel CreateExample()
+        {
+            return new JiGuangOperationModel
+            {
+                Type = "LASERQR_Change",
+                Data = new Dictionary<string, object>
+            {
+                { "MES_QRLaserPulseWidth", 12.2 },
+                { "MES_QRLaserFrequency", 1.3 },
+                { "MES_QRActiveRecipe", "当前加工模板" },
+                { "MES_QRGlassModel", "玻璃型号" },
+                { "MES_QRID", "编辑序列号" }
+            }
+            };
+        }
+
+        /// <summary>
+        /// 便捷方法：获取数据值（带类型转换）
+        /// </summary>
+        public T? GetDataValue<T>(string key, T? defaultValue = default)
+        {
+            if (Data != null && Data.ContainsKey(key) && Data[key] is T value)
+            {
+                return value;
+            }
+            return defaultValue;
+        }
+
+        /// <summary>
+        /// 便捷方法：设置数据值
+        /// </summary>
+        public void SetDataValue<T>(string key, T value)
+        {
+            if (Data == null)
+                Data = new Dictionary<string, object>();
+
+            Data[key] = value!;
+        }
+
+    }
+
+
+    //测试方法
+void TestJiGuangOperationModel()
+{
+    // 方法1：直接创建并设置数据
+    var model1 = new JiGuangOperationModel();
+    model1.Data["MES_QRLaserPulseWidth"] = 12.2;
+    model1.Data["MES_QRLaserFrequency"] = 1.3;
+    model1.Data["MES_QRActiveRecipe"] = "模板A";
+    model1.Data["MES_QRGlassModel"] = "玻璃B";
+    model1.Data["MES_QRID"] = "SN123456";
+
+    // 方法2：使用便捷方法设置
+    var model2 = new JiGuangOperationModel();
+    model2.SetDataValue("MES_QRLaserPulseWidth", 15.5);
+    model2.SetDataValue("MES_QRLaserFrequency", 2.0);
+    model2.SetDataValue("MES_QRActiveRecipe", "模板B");
+
+    // 方法3：使用示例数据
+    var model3 = JiGuangOperationModel.CreateExample();
+
+    // 序列化为JSON
+    string json = model3.SerializeToJson();
+    Console.WriteLine("序列化结果:");
+    Console.WriteLine(json);
+
+    // 反序列化示例
+    string jsonString = @"{
+            ""type"": ""LASERQR_Change"",
+            ""data"": {
+                ""MES_QRLaserPulseWidth"": 12.2,
+                ""MES_QRLaserFrequency"": 1.3,
+                ""MES_QRActiveRecipe"": ""当前加工模板"",
+                ""MES_QRGlassModel"": ""玻璃型号"",
+                ""MES_QRID"": ""编辑序列号"",
+                ""MES_ISProcessMode"": true
+            }
+        }";
+
+    var deserializedModel = JiGuangOperationModel.DeserializeFromJson(jsonString);
+    Console.WriteLine($"\n反序列化成功!");
+    Console.WriteLine($"类型: {deserializedModel?.Type}");
+    Console.WriteLine($"脉宽: {deserializedModel?.GetDataValue<double>("MES_QRLaserPulseWidth")}");
+    Console.WriteLine($"频率: {deserializedModel?.GetDataValue<double>("MES_QRLaserFrequency")}");
+    Console.WriteLine($"模板: {deserializedModel?.GetDataValue<string>("MES_QRActiveRecipe")}");
+    Console.WriteLine($"加工模式: {deserializedModel?.GetDataValue<bool>("MES_ISProcessMode")}");
+
+    // 遍历所有数据
+    Console.WriteLine("\n所有数据:");
+    foreach (var item in deserializedModel!.Data)
+    {
+        Console.WriteLine($"{item.Key}: {item.Value} ({item.Value.GetType().Name})");
+    }
+}
