@@ -157,19 +157,18 @@ namespace NetworkFileTransfer.Upgrade
                 // 4. 处理传输完成（仅当收到最后一片且已接收全部数据时）
                 if (isLast && received >= header.FileSize)
                 {
-                    await fileStream.FlushAsync(ct);
-
-                    // 可选：校验文件哈希（提升可靠性）
-                    var receivedChecksum = await CalculateChecksumAsync(filePath, ct);
-                    if (receivedChecksum != header.Checksum)
-                    {
-                        var errorMsg = "文件校验和不匹配，传输失败";
-                        OnError(endpoint, errorMsg);
-                        await protocol.WriteAsync(FileTransferProtocol.CreateError(errorMsg), ct);
-                        File.Delete(filePath); // 删除损坏的文件
-                        return;
-                    }
-
+                    //await fileStream.FlushAsync(ct);
+                    //await fileStream.DisposeAsync();
+                    //// 可选：校验文件哈希（提升可靠性）
+                    //var receivedChecksum = await CalculateChecksumAsync(filePath, ct);
+                    //if (receivedChecksum != header.Checksum)
+                    //{
+                    //    var errorMsg = "文件校验和不匹配，传输失败";
+                    //    OnError(endpoint, errorMsg);
+                    //    await protocol.WriteAsync(FileTransferProtocol.CreateError(errorMsg), ct);
+                    //    File.Delete(filePath); // 删除损坏的文件
+                    //    return;
+                    //}
                     // 发送完成确认给客户端
                     await protocol.WriteAsync(FileTransferProtocol.CreateComplete(
                         Path.GetFileName(fileStream.Name), fileStream.Length, filePath), ct);
@@ -178,16 +177,16 @@ namespace NetworkFileTransfer.Upgrade
             }
         }
 
-        /// <summary>
-        /// 服务端计算文件校验和（与客户端保持一致）
-        /// </summary>
-        private async Task<string> CalculateChecksumAsync(string filePath, CancellationToken ct)
-        {
-            await using var stream = File.OpenRead(filePath);
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hash = await sha256.ComputeHashAsync(stream, ct);
-            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        }
+        ///// <summary>
+        ///// 服务端计算文件校验和（与客户端保持一致）
+        ///// </summary>
+        //private async Task<string> CalculateChecksumAsync(string filePath, CancellationToken ct)
+        //{
+        //    await using var stream = File.OpenRead(filePath);
+        //    using var sha256 = System.Security.Cryptography.SHA256.Create();
+        //    var hash = await sha256.ComputeHashAsync(stream, ct);
+        //    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        //}
 
         private string GetUniquePath(string path)
         {
