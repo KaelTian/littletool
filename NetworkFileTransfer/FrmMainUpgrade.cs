@@ -283,12 +283,13 @@ namespace NetworkFileTransfer
             _transferStartTime = DateTime.MinValue; // 重置开始时间为默认值
 
             // 2. 更新UI：展示传输完成状态，友好收尾
-            lblCurrentFileValue.Text = $"【已完成】{Path.GetFileName(e.StoredPath)}";
+            lblCurrentFileValue.Text = $"【已完成】";
             pgbFileProgress.Value = pgbFileProgress.Maximum; // 进度条拉满
             lblProgressPercent.Text = "100%";
             lblSpeedValue.Text = "传输完成";
             // 展示本次传输总耗时（格式化：时分秒，更易读）
-            lblTimeRemainingValue.Text = $"耗时：{transferTotalTime.ToString(@"mm\:ss")}";
+            lblTimeRemainingValue.Text = $"耗时：{FormatTime(transferTotalTime)}";
+            AddLog($"{FormatBytes(e.FileSize)} 服务端路径: {e.StoredPath} 文件传输完成", Color.Green);
         }
 
         private void OnClientConnected(object? sender, TransferEvent e)
