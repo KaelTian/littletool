@@ -148,7 +148,7 @@ namespace NetworkFileTransfer.Upgrade
                     // 后续：校验文件哈希、发送 Complete 消息给客户端等逻辑
                     await protocol.WriteAsync(FileTransferProtocol.CreateComplete(
                         Path.GetFileName(fileStream.Name), fileStream.Length, filePath), ct);
-                    OnTransferCompleted(endpoint, header.FileName, filePath);
+                    OnTransferCompleted(endpoint, header.FileName, filePath, fileStream.Length);
                 }
             }
         }
@@ -169,8 +169,8 @@ namespace NetworkFileTransfer.Upgrade
             TransferStarted?.Invoke(this, new TransferEvent(endpoint, file, size));
         private void OnProgressChanged(string endpoint, string file, long current, long total) =>
             ProgressChanged?.Invoke(this, new TransferProgressEvent(endpoint, file, current, total));
-        private void OnTransferCompleted(string endpoint, string file, string path) =>
-            TransferCompleted?.Invoke(this, new TransferEvent(endpoint, file, 0, path));
+        private void OnTransferCompleted(string endpoint, string file, string path, long total) =>
+            TransferCompleted?.Invoke(this, new TransferEvent(endpoint, file, total, path));
         private void OnError(string endpoint, string error) =>
             ErrorOccurred?.Invoke(this, new TransferErrorEvent(endpoint, error));
         private void OnStatusChanged(string msg) =>

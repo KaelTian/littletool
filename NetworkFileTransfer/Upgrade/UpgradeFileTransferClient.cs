@@ -96,7 +96,7 @@ namespace NetworkFileTransfer.Upgrade
                     // 解析完成结果
                     var jsonString = Encoding.UTF8.GetString(complete.Payload);
                     var result = JsonSerializer.Deserialize<TransferComplete>(jsonString)!;
-                    OnTransferCompleted(result.FileName, result.StoredPath);
+                    OnTransferCompleted(result.FileName, result.StoredPath, result.BytesReceived);
                 }
             }
             catch (Exception ex)
@@ -129,8 +129,8 @@ namespace NetworkFileTransfer.Upgrade
             TransferStarted?.Invoke(this, new TransferEvent("", file, size));
         private void OnProgressChanged(string file, long current, long total) =>
             ProgressChanged?.Invoke(this, new TransferProgressEvent("", file, current, total));
-        private void OnTransferCompleted(string file, string? path) =>
-            TransferCompleted?.Invoke(this, new TransferEvent("", file, 0, path));
+        private void OnTransferCompleted(string file, string? path, long total) =>
+            TransferCompleted?.Invoke(this, new TransferEvent("", file, total, path));
         private void OnError(string file, string error) =>
             ErrorOccurred?.Invoke(this, new TransferErrorEvent(file, error));
     }
