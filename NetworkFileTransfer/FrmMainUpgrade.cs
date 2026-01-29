@@ -14,6 +14,10 @@ namespace NetworkFileTransfer
         private long _transferredBytes = 0;
         private bool _isServerListening = false;
         private bool _isClientConnected = false;
+        /// <summary>
+        /// 是否恢复传输
+        /// </summary>
+        private bool _isResume = true;
 
         public FrmMainUpgrade()
         {
@@ -128,7 +132,7 @@ namespace NetworkFileTransfer
                     _server.ProgressChanged -= OnProgressChanged;
                     _server.TransferStarted -= OnTransferStarted;
                     _server.TransferCompleted -= OnTransferCompleted;
-                    _server.ErrorOccurred -= OnStatusChanged;
+                    _server.ErrorOccurred -= OnErrorOccurred;
                     _server = null;
                 }
 
@@ -139,7 +143,7 @@ namespace NetworkFileTransfer
                     _client.ProgressChanged -= OnProgressChanged;
                     _client.TransferStarted -= OnTransferStarted;
                     _client.TransferCompleted -= OnTransferCompleted;
-                    _client.ErrorOccurred -= OnStatusChanged;
+                    _client.ErrorOccurred -= OnErrorOccurred;
                     _client = null;
                 }
 
@@ -238,7 +242,7 @@ namespace NetworkFileTransfer
             _server.ProgressChanged += OnProgressChanged;
             _server.TransferStarted += OnTransferStarted;
             _server.TransferCompleted += OnTransferCompleted;
-            _server.ErrorOccurred += OnStatusChanged;
+            _server.ErrorOccurred += OnErrorOccurred;
             await _server.StartAsync();
             _isServerListening = true;
         }
@@ -262,6 +266,10 @@ namespace NetworkFileTransfer
             lblProgressPercent.Text = "0%";
             lblSpeedValue.Text = "准备中...";
             lblTimeRemainingValue.Text = "准备中...";
+            if (!_isServer && !btnResume.Enabled)
+            {
+                btnResume.Enabled = true;
+            }
         }
 
         // 假设你的 TransferEvent 类和原代码一致，包含 FileName 等属性
@@ -290,6 +298,10 @@ namespace NetworkFileTransfer
             // 展示本次传输总耗时（格式化：时分秒，更易读）
             lblTimeRemainingValue.Text = $"耗时：{FormatTime(transferTotalTime)}";
             AddLog($"{FormatBytes(e.FileSize)} 服务端路径: {e.StoredPath} 文件传输完成", Color.Green);
+            if (!_isServer && btnResume.Enabled)
+            {
+                btnResume.Enabled = false;
+            }
         }
 
         private void OnClientConnected(object? sender, TransferEvent e)
@@ -315,7 +327,7 @@ namespace NetworkFileTransfer
             _client.ProgressChanged += OnProgressChanged;
             _client.TransferStarted += OnTransferStarted;
             _client.TransferCompleted += OnTransferCompleted;
-            _client.ErrorOccurred += OnStatusChanged;
+            _client.ErrorOccurred += OnErrorOccurred;
             var serverIP = txtServerIP.Text;
             var port = (int)nudPort.Value;
             await _client.ConnectAsync(serverIP, port);
@@ -394,16 +406,20 @@ namespace NetworkFileTransfer
             }
         }
 
-        private void OnStatusChanged(object? sender, TransferErrorEvent e)
+        private void OnErrorOccurred(object? sender, TransferErrorEvent e)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<object, TransferErrorEvent>(OnStatusChanged), sender, e);
+                Invoke(new Action<object, TransferErrorEvent>(OnErrorOccurred), sender, e);
                 return;
             }
             var errorMsg = $"Context: {e.Context},异常: {e.Error}";
             AddLog(errorMsg, Color.Red);
             tsslStatus.Text = errorMsg;
+            if (!_isServer && btnResume.Enabled)
+            {
+                btnResume.Enabled = false;
+            }
         }
 
         private void UpdateConnectionControls()
@@ -546,6 +562,32 @@ namespace NetworkFileTransfer
             {
                 return "未知";
             }
+        }
+
+        private async void btnResume_Click(object sender, EventArgs e)
+        {
+            if (_client == null) return;
+            if (_isResume)
+            {
+                // 暂停传输
+                await _client.PauseTransferAsync();
+            }
+            else
+            {
+                // 恢复传输
+                await _client.ResumeTransferAsync();
+            }
+            _isResume = !_isResume;
+            // to do: 恢复到UI线程
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() =>
+                {
+                    btnResume.Text = _isResume ? "暂停传输" : "恢复传输";
+                }));
+                return;
+            }
+            btnResume.Text = _isResume ? "暂停传输" : "恢复传输";
         }
     }
 }

@@ -55,6 +55,7 @@ namespace NetworkFileTransfer
             txtLocalPath = new TextBox();
             btnBrowseLocal = new Button();
             btnSendFile = new Button();
+            btnResume = new Button();
             grpProgress = new GroupBox();
             tlpProgress = new TableLayoutPanel();
             lblCurrentFile = new Label();
@@ -396,6 +397,7 @@ namespace NetworkFileTransfer
             tlpClientSettings.Controls.Add(txtLocalPath, 1, 0);
             tlpClientSettings.Controls.Add(btnBrowseLocal, 2, 0);
             tlpClientSettings.Controls.Add(btnSendFile, 1, 2);
+            tlpClientSettings.Controls.Add(btnResume, 2, 3);
             tlpClientSettings.Dock = DockStyle.Fill;
             tlpClientSettings.Location = new Point(10, 29);
             tlpClientSettings.Margin = new Padding(4);
@@ -465,6 +467,24 @@ namespace NetworkFileTransfer
             btnSendFile.Text = "发送文件";
             btnSendFile.UseVisualStyleBackColor = false;
             btnSendFile.Click += btnSendFile_Click;
+            // 
+            // btnResume
+            // 
+            btnResume.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            btnResume.BackColor = Color.FromArgb(46, 204, 113);
+            btnResume.Enabled = false;
+            btnResume.FlatAppearance.BorderSize = 0;
+            btnResume.FlatStyle = FlatStyle.Flat;
+            btnResume.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
+            btnResume.ForeColor = Color.White;
+            btnResume.Location = new Point(429, 122);
+            btnResume.Margin = new Padding(4);
+            btnResume.Name = "btnResume";
+            btnResume.Size = new Size(95, 33);
+            btnResume.TabIndex = 6;
+            btnResume.Text = "暂停传输";
+            btnResume.UseVisualStyleBackColor = false;
+            btnResume.Click += btnResume_Click;
             // 
             // grpProgress
             // 
@@ -794,5 +814,6 @@ namespace NetworkFileTransfer
         private OpenFileDialog ofdSelectFile;
         private FolderBrowserDialog fbdSaveDirectory;
         private SaveFileDialog sfdSaveFile;
+        private Button btnResume;
     }
 }

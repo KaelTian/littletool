@@ -111,29 +111,42 @@ namespace NetworkFileTransfer.Upgrade
                 FileShare.None, 81920, FileOptions.Asynchronous);
 
             long received = 0;
-            var buffer = new List<byte>(); // 用于收集分片
 
             while (received < header.FileSize)
             {
+                // 阻塞等待客户端发送分片（长连接下，客户端暂停时这里会一直等待，不会报错）
                 var chunk = await protocol.ReadAsync(ct);
-                if (chunk?.Type != FileTransferProtocol.MessageType.FileData)
-                    throw new ProtocolException("Expected file data chunk");
 
-                // 1. 调用辅助方法解析 FileData 二进制 Payload（无需 JSON/Base64）
+                // 处理异常消息类型
+                if (chunk == null)
+                {
+                    throw new ProtocolException("Received null message from client");
+                }
+                if (chunk.Type == FileTransferProtocol.MessageType.Error)
+                {
+                    OnError(endpoint, "Client sent error message, aborting transfer");
+                    return;
+                }
+                if (chunk.Type != FileTransferProtocol.MessageType.FileData)
+                {
+                    throw new ProtocolException("Expected file data chunk, received other message type");
+                }
+
+                // 1. 解析 FileData 二进制 Payload
                 if (!FileTransferProtocol.TryParseFileDataPayload(chunk.Payload, out long offset, out bool isLast, out byte[] fileData))
                 {
                     OnError(endpoint, "解析 FileData 失败：无效的二进制 Payload");
-                    // 可发送 Error 消息给客户端
                     await protocol.WriteAsync(FileTransferProtocol.CreateError("无效的文件分片数据"), ct);
                     return;
                 }
 
-                // 2. 直接写入文件流（无额外转换，效率拉满）
-                // 可选：验证 offset 是否正确（避免分片乱序）
-                if (offset != fileStream.Position)
+                // 2. 严格校验 offset（避免乱序分片，保证断点续传的正确性）
+                if (offset != received)
                 {
-                    OnError(endpoint, $"警告：分片偏移量不匹配，预期 {fileStream.Position}，实际 {offset}");
-                    // 如需严格保证顺序，可在这里缓存乱序分片，后续重新排序
+                    var errorMsg = $"分片偏移量不匹配，预期 {received}，实际 {offset}，传输终止";
+                    OnError(endpoint, errorMsg);
+                    await protocol.WriteAsync(FileTransferProtocol.CreateError(errorMsg), ct);
+                    return;
                 }
 
                 await fileStream.WriteAsync(fileData, 0, fileData.Length, ct);
@@ -141,16 +154,39 @@ namespace NetworkFileTransfer.Upgrade
 
                 OnProgressChanged(endpoint, header.FileName, received, header.FileSize);
 
-                // 3. 处理最后一片分片
-                if (isLast || received >= header.FileSize)
+                // 4. 处理传输完成（仅当收到最后一片且已接收全部数据时）
+                if (isLast && received >= header.FileSize)
                 {
                     await fileStream.FlushAsync(ct);
-                    // 后续：校验文件哈希、发送 Complete 消息给客户端等逻辑
+
+                    // 可选：校验文件哈希（提升可靠性）
+                    var receivedChecksum = await CalculateChecksumAsync(filePath, ct);
+                    if (receivedChecksum != header.Checksum)
+                    {
+                        var errorMsg = "文件校验和不匹配，传输失败";
+                        OnError(endpoint, errorMsg);
+                        await protocol.WriteAsync(FileTransferProtocol.CreateError(errorMsg), ct);
+                        File.Delete(filePath); // 删除损坏的文件
+                        return;
+                    }
+
+                    // 发送完成确认给客户端
                     await protocol.WriteAsync(FileTransferProtocol.CreateComplete(
                         Path.GetFileName(fileStream.Name), fileStream.Length, filePath), ct);
                     OnTransferCompleted(endpoint, header.FileName, filePath, fileStream.Length);
                 }
             }
+        }
+
+        /// <summary>
+        /// 服务端计算文件校验和（与客户端保持一致）
+        /// </summary>
+        private async Task<string> CalculateChecksumAsync(string filePath, CancellationToken ct)
+        {
+            await using var stream = File.OpenRead(filePath);
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var hash = await sha256.ComputeHashAsync(stream, ct);
+            return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
         }
 
         private string GetUniquePath(string path)
