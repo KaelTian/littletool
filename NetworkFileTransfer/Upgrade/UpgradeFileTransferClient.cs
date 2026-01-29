@@ -209,9 +209,9 @@ namespace NetworkFileTransfer.Upgrade
             try
             {
                 // 1. 发送文件头
-                var checksum = await CalculateChecksumAsync(filePath, token);
+                //var checksum = await CalculateChecksumAsync(filePath, token);
                 await _protocol!.WriteAsync(
-                    FileTransferProtocol.CreateFileHeader(fileName, fileInfo.Length, checksum), token);
+                    FileTransferProtocol.CreateFileHeader(fileName, fileInfo.Length, string.Empty), token);
 
                 // 2. 等待服务器确认
                 var ack = await _protocol.ReadAsync(token);
@@ -289,12 +289,13 @@ namespace NetworkFileTransfer.Upgrade
             }
         }
 
-        private async Task<string> CalculateChecksumAsync(string path, CancellationToken ct)
-        {
-            await using var stream = File.OpenRead(path);
-            var hash = await SHA256.HashDataAsync(stream, ct);
-            return Convert.ToHexString(hash);
-        }
+        //private async Task<string> CalculateChecksumAsync(string filePath, CancellationToken ct)
+        //{
+        //    await using var stream = File.OpenRead(filePath);
+        //    using var sha256 = System.Security.Cryptography.SHA256.Create();
+        //    var hash = await sha256.ComputeHashAsync(stream, ct);
+        //    return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        //}
 
         public async ValueTask DisposeAsync()
         {

@@ -284,24 +284,14 @@ namespace NetworkFileTransfer
                 return;
             }
 
-            // 1. 清理/更新传输相关变量（可选，根据你的业务需求调整）
-            var transferTotalTime = DateTime.Now - _transferStartTime; // 计算本次传输总耗时
-            _totalBytes = 0;
-            _transferredBytes = 0;
-            _transferStartTime = DateTime.MinValue; // 重置开始时间为默认值
-
-            // 2. 更新UI：展示传输完成状态，友好收尾
-            lblCurrentFileValue.Text = $"【已完成】";
-            pgbFileProgress.Value = pgbFileProgress.Maximum; // 进度条拉满
-            lblProgressPercent.Text = "100%";
-            lblSpeedValue.Text = "传输完成";
-            // 展示本次传输总耗时（格式化：时分秒，更易读）
-            lblTimeRemainingValue.Text = $"耗时：{FormatTime(transferTotalTime)}";
-            AddLog($"{FormatBytes(e.FileSize)} 服务端路径: {e.StoredPath} 文件传输完成", Color.Green);
+            lblCurrentFileValue.Text = "--";
+            lblSpeedValue.Text = "--";
+            lblTimeRemainingValue.Text = "--";
             if (!_isServer && btnResume.Enabled)
             {
                 btnResume.Enabled = false;
             }
+            AddLog($"{FormatBytes(e.FileSize)} 服务端路径: {e.StoredPath} 文件传输完成", Color.Green);
         }
 
         private void OnClientConnected(object? sender, TransferEvent e)
@@ -569,25 +559,18 @@ namespace NetworkFileTransfer
             if (_client == null) return;
             if (_isResume)
             {
+                btnResume.Text = "恢复传输";
+                _isResume = false;
                 // 暂停传输
                 await _client.PauseTransferAsync();
             }
             else
             {
+                btnResume.Text = "暂停传输";
+                _isResume = true;
                 // 恢复传输
                 await _client.ResumeTransferAsync();
             }
-            _isResume = !_isResume;
-            // to do: 恢复到UI线程
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() =>
-                {
-                    btnResume.Text = _isResume ? "暂停传输" : "恢复传输";
-                }));
-                return;
-            }
-            btnResume.Text = _isResume ? "暂停传输" : "恢复传输";
         }
     }
 }
