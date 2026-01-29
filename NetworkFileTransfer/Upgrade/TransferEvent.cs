@@ -1,4 +1,6 @@
-﻿namespace NetworkFileTransfer.Upgrade
+﻿using System.Text.Json.Serialization;
+
+namespace NetworkFileTransfer.Upgrade
 {
     public class TransferEvent : EventArgs
     {
@@ -35,5 +37,9 @@
         public TransferErrorEvent(string context, string error) { Context = context; Error = error; }
     }
 
-    public record TransferComplete(string FileName, long BytesReceived, string? StoredPath);
+    public record TransferComplete(
+        [property: JsonPropertyName("fileName")] string FileName,
+        [property: JsonPropertyName("bytesReceived")] long BytesReceived,
+        [property: JsonPropertyName("storedPath")] string? StoredPath
+        );
 }

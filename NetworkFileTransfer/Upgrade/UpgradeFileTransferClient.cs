@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace NetworkFileTransfer.Upgrade
@@ -92,8 +93,10 @@ namespace NetworkFileTransfer.Upgrade
                 var complete = await _protocol.ReadAsync(token);
                 if (complete?.Type == FileTransferProtocol.MessageType.Complete)
                 {
-                    var result = JsonSerializer.Deserialize<TransferComplete>(complete.Payload)!;
-                    OnTransferCompleted(fileName, result.StoredPath);
+                    // 解析完成结果
+                    var jsonString = Encoding.UTF8.GetString(complete.Payload);
+                    var result = JsonSerializer.Deserialize<TransferComplete>(jsonString)!;
+                    OnTransferCompleted(result.FileName, result.StoredPath);
                 }
             }
             catch (Exception ex)

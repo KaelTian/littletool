@@ -1,6 +1,8 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace NetworkFileTransfer.Upgrade
 {
@@ -95,7 +97,8 @@ namespace NetworkFileTransfer.Upgrade
             string endpoint, CancellationToken ct)
         {
             // 解析文件头
-            var header = JsonSerializer.Deserialize<FileHeader>(headerPayload)!;
+            var jsonString = Encoding.UTF8.GetString(headerPayload);
+            var header = JsonSerializer.Deserialize<FileHeader>(jsonString)!;
             var filePath = GetUniquePath(Path.Combine(SaveDirectory, header.FileName));
 
             OnTransferStarted(endpoint, header.FileName, header.FileSize);
@@ -116,23 +119,38 @@ namespace NetworkFileTransfer.Upgrade
                 if (chunk?.Type != FileTransferProtocol.MessageType.FileData)
                     throw new ProtocolException("Expected file data chunk");
 
-                var dataMsg = JsonSerializer.Deserialize<FileDataMessage>(chunk.Payload)!;
-                var bytes = Convert.FromBase64String(dataMsg.Data);
+                // 1. 调用辅助方法解析 FileData 二进制 Payload（无需 JSON/Base64）
+                if (!FileTransferProtocol.TryParseFileDataPayload(chunk.Payload, out long offset, out bool isLast, out byte[] fileData))
+                {
+                    OnError(endpoint, "解析 FileData 失败：无效的二进制 Payload");
+                    // 可发送 Error 消息给客户端
+                    await protocol.WriteAsync(FileTransferProtocol.CreateError("无效的文件分片数据"), ct);
+                    return;
+                }
 
-                await fileStream.WriteAsync(bytes, ct);
-                received += bytes.Length;
+                // 2. 直接写入文件流（无额外转换，效率拉满）
+                // 可选：验证 offset 是否正确（避免分片乱序）
+                if (offset != fileStream.Position)
+                {
+                    OnError(endpoint, $"警告：分片偏移量不匹配，预期 {fileStream.Position}，实际 {offset}");
+                    // 如需严格保证顺序，可在这里缓存乱序分片，后续重新排序
+                }
+
+                await fileStream.WriteAsync(fileData, 0, fileData.Length, ct);
+                received += fileData.Length;
 
                 OnProgressChanged(endpoint, header.FileName, received, header.FileSize);
 
-                // 如果是最后一个分片，发送确认
-                if (dataMsg.IsLast || received >= header.FileSize)
+                // 3. 处理最后一片分片
+                if (isLast || received >= header.FileSize)
                 {
-                    await protocol.WriteAsync(
-                        FileTransferProtocol.CreateComplete(header.FileName, received, filePath), ct);
+                    await fileStream.FlushAsync(ct);
+                    // 后续：校验文件哈希、发送 Complete 消息给客户端等逻辑
+                    await protocol.WriteAsync(FileTransferProtocol.CreateComplete(
+                        Path.GetFileName(fileStream.Name), fileStream.Length, filePath), ct);
+                    OnTransferCompleted(endpoint, header.FileName, filePath);
                 }
             }
-
-            OnTransferCompleted(endpoint, header.FileName, filePath);
         }
 
         private string GetUniquePath(string path)
@@ -167,6 +185,9 @@ namespace NetworkFileTransfer.Upgrade
     }
 
     // DTOs
-    public record FileHeader(string FileName, long FileSize, string? Checksum);
-    public record FileDataMessage(long Offset, bool IsLast, string Data);
+    public record FileHeader(
+       [property: JsonPropertyName("fileName")] string FileName,
+       [property: JsonPropertyName("fileSize")] long FileSize,
+       [property: JsonPropertyName("checksum")] string? Checksum
+        );
 }
