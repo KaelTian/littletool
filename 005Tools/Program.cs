@@ -38,7 +38,99 @@ using Tool.Service;
 
 //EventDemo.Main(new string[] { });
 
-await ModbusClientTest();
+//try
+//{
+//    Convert.ToUInt16("Xh".PadLeft(4, '0'), 16);  // 变成 "00Xh"
+//}
+//catch(Exception ex)
+//{
+//    Console.WriteLine(ex);
+//}
+//Console.ReadLine();
+
+//await ModbusClientTest();
+
+//KeyboardTest();
+
+// .NET 8 顶级语句 - 无需 Main 方法
+Console.WriteLine("=== 全局钩子画板 (Top-level Statements) ===");
+Console.WriteLine("画板启动中...");
+
+Application.EnableVisualStyles();
+Application.SetCompatibleTextRenderingDefault(false);
+
+try
+{
+    var form = new PaintForm();
+    form.FormClosed += (s, e) => Console.WriteLine("画板已关闭");
+    Application.Run(form);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"错误: {ex.Message}");
+    Console.WriteLine(ex.StackTrace);
+}
+
+Console.WriteLine("按任意键退出...");
+Console.ReadKey();
+
+void KeyboardTest()
+{
+    using (var hook = new GlobalInputHook(hookKeyboard: true, hookMouse: true))
+    {
+
+        hook.KeyPressed += (s, e) => {
+            if (e.Control && e.Key == Keys.Q)
+            {
+                Console.WriteLine("Ctrl+Q 退出");
+                Environment.Exit(0);
+            }
+            Console.WriteLine($"按下: {e.Key}, 修饰键: {e.Modifiers}");
+        };
+
+        // 鼠标按下
+        hook.MouseDown += (s, e) =>
+        {
+            Console.WriteLine($"鼠标按下: {e.Button} 在位置 {e.Location}");
+
+            // 支持修饰键组合
+            if (e.Control && e.LeftButton)
+            {
+                Console.WriteLine("Ctrl + 左键按下");
+            }
+        };
+
+        // 鼠标释放
+        hook.MouseUp += (s, e) =>
+        {
+            Console.WriteLine($"鼠标释放: {e.Button}");
+        };
+
+        // 鼠标点击（Down + Up 后触发）
+        hook.MouseClick += (s, e) =>
+        {
+            if (e.RightButton)
+            {
+                Console.WriteLine("右键点击 - 可在此处显示上下文菜单");
+            }
+        };
+
+        // 鼠标移动
+        hook.MouseMove += (s, e) =>
+        {
+            Console.WriteLine($"鼠标移动: {e.Location}");
+        };
+
+        // 鼠标滚轮
+        hook.MouseWheel += (s, e) =>
+        {
+            Console.WriteLine($"滚轮: {(e.Delta > 0 ? "向上" : "向下")} {Math.Abs(e.Delta)} 单位");
+        };
+
+        Console.WriteLine("全局鼠标钩子已启动，按 Ctrl+Q 退出...");
+        Application.Run();
+    }
+}
 
 async Task ModbusClientTest()
 {

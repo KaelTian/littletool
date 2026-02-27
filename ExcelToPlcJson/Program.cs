@@ -48,12 +48,12 @@ try
                 {
                     StartRow=8 // DB21表格起始行不同
                 })),
-            (excelBasePath, "M区", Path.Combine(jsonOutputDir,"M区.json"),
-                new ExcelProcessor(new ParserConfig
-                {
-                    StartRow=29,
-                    MAreaBaseOffset=1000
-                })),
+            (excelBasePath, "MArea_NoAlarm", Path.Combine(jsonOutputDir,"MArea_NoAlarm.json"),
+                new ExcelProcessor(new ParserConfig()
+                {MAreaBaseOffset=1000})),
+            (excelBasePath, "MArea_Alarm", Path.Combine(jsonOutputDir,"MArea_Alarm.json"),
+                new ExcelProcessor(new ParserConfig()
+                {MAreaBaseOffset=1000})),
         };
         foreach ((var excelPath, var sheetName, var outputPath, var processor) in values)
         {
@@ -62,23 +62,23 @@ try
     }
     #endregion
     #region 单个处理
-    //{
+    {
 
-    //    // 配置参数
-    //    var config = new ParserConfig
-    //    {
-    //        StartRow = 29,           // 从第29行开始（第1行是表头）
-    //        NameColumnIndex = 1,    // A列：数据名称
-    //        AddressColumnIndex = 4, // D列：点位名（DBD120等）
-    //        MAreaBaseOffset = 1000  // M区基准偏移量
-    //    };
-    //    var processor = new ExcelProcessor(config);
-    //    string excelPath = @"D:\Downloads\层压机数采数据明细_202602.xlsx";
-    //    string sheetName = "M区";
-    //    string outputPath = @"D:\works\005\PlcController\MArea.json";
-    //    processor.Process(excelPath, sheetName, outputPath);
+        //// 配置参数
+        //var config = new ParserConfig
+        //{
+        //    //StartRow = 29,           // 从第29行开始（第1行是表头）
+        //    NameColumnIndex = 1,    // A列：数据名称
+        //    AddressColumnIndex = 4, // D列：点位名（DBD120等）
+        //    MAreaBaseOffset = 1000  // M区基准偏移量
+        //};
+        //var processor = new ExcelProcessor(config);
+        //string excelPath = @"D:\Downloads\层压机数采数据明细_202602.xlsx";
+        //string sheetName = "M区报警";
+        //string outputPath = @"D:\works\005\PlcController\M区报警.json";
+        //processor.Process(excelPath, sheetName, outputPath);
 
-    //}
+    }
     #endregion
     Console.WriteLine("\n按任意键退出...");
     Console.ReadKey();
