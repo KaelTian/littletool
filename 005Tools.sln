@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskSchedulerManager", "Tas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelToPlcJson", "ExcelToPlcJson\ExcelToPlcJson.csproj", "{6ED1E97F-4ACF-422F-A891-D503C6826140}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyMessageHub", "EasyMessageHub\EasyMessageHub.csproj", "{F1652C38-6446-4B75-A2E4-5D96B9A2878B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Tests.Unit", "Tools.Tests.Unit\Tools.Tests.Unit.csproj", "{CE963F0B-D463-4332-9463-22489DA5486E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{6ED1E97F-4ACF-422F-A891-D503C6826140}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ED1E97F-4ACF-422F-A891-D503C6826140}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ED1E97F-4ACF-422F-A891-D503C6826140}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1652C38-6446-4B75-A2E4-5D96B9A2878B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1652C38-6446-4B75-A2E4-5D96B9A2878B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1652C38-6446-4B75-A2E4-5D96B9A2878B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1652C38-6446-4B75-A2E4-5D96B9A2878B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE963F0B-D463-4332-9463-22489DA5486E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE963F0B-D463-4332-9463-22489DA5486E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE963F0B-D463-4332-9463-22489DA5486E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE963F0B-D463-4332-9463-22489DA5486E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
