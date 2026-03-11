@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using _005Tools;
 using NModbus;
+using System.Drawing;
 using System.Drawing.Text;
 using System.Net.Sockets;
 using System.Text;
@@ -53,22 +54,68 @@ using Tool.Service;
 //KeyboardTest();
 
 // .NET 8 顶级语句 - 无需 Main 方法
-Console.WriteLine("=== 全局钩子画板 (Top-level Statements) ===");
-Console.WriteLine("画板启动中...");
+//Console.WriteLine("=== 全局钩子画板 (Top-level Statements) ===");
+//Console.WriteLine("画板启动中...");
 
-Application.EnableVisualStyles();
-Application.SetCompatibleTextRenderingDefault(false);
+//Application.EnableVisualStyles();
+//Application.SetCompatibleTextRenderingDefault(false);
 
-try
+//try
+//{
+//    var form = new PaintForm();
+//    form.FormClosed += (s, e) => Console.WriteLine("画板已关闭");
+//    Application.Run(form);
+//}
+//catch (Exception ex)
+//{
+//    Console.WriteLine($"错误: {ex.Message}");
+//    Console.WriteLine(ex.StackTrace);
+//}
+
+
+var Quote = "\"";
+
+List<string> points = new List<string>
 {
-    var form = new PaintForm();
-    form.FormClosed += (s, e) => Console.WriteLine("画板已关闭");
-    Application.Run(form);
+    "FLAG_ALM_1.x0",
+    "FLAG_ALM_1.x1",
+    "气源ok",
+    "使能ok",
+    "Gantry.enabled",
+    "Gantry.homed",
+    "Gantry.ActVelocity",
+    "Gantry.ActPosition",
+    "浸泡位置左涂头间距相对设定高度"
+};
+
+List<string> transformValues = new List<string>
+{
+
+};
+foreach (var point in points)
+{
+    string tag = string.Join('.', point.Split(".").Select(x =>
+    {
+        string result;
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(x, @"(\w+)(\[(\d+)\])");
+        if (match.Success)
+        {
+            result = $"{Quote}{match.Groups[1].Value}{Quote}[{match.Groups[3].Value}]";
+        }
+        else
+        {
+            result = $"{Quote}{x}{Quote}";
+        }
+        return result;
+    }));
+
+    transformValues.Add(tag);
 }
-catch (Exception ex)
+
+Console.WriteLine("转换结果:");
+foreach (var item in transformValues)
 {
-    Console.WriteLine($"错误: {ex.Message}");
-    Console.WriteLine(ex.StackTrace);
+    Console.WriteLine(item);
 }
 
 Console.WriteLine("按任意键退出...");
@@ -79,7 +126,8 @@ void KeyboardTest()
     using (var hook = new GlobalInputHook(hookKeyboard: true, hookMouse: true))
     {
 
-        hook.KeyPressed += (s, e) => {
+        hook.KeyPressed += (s, e) =>
+        {
             if (e.Control && e.Key == Keys.Q)
             {
                 Console.WriteLine("Ctrl+Q 退出");

@@ -19,12 +19,15 @@ try
     #region 批量处理
     {
         string excelBasePath = @"D:\Downloads\层压机数采数据明细_202602.xlsx";
-        string jsonOutputDir = @"D:\works\005\PlcController\";
+        //// 测试环境输出路径
+        //string jsonOutputDir = @"D:\works\005\PlcController";
+        // 生产环境输出路径
+        string jsonOutputDir = @"D:\works\005\PlcController\现场配置";
         List<(string, string, string, ExcelProcessor)> values = new List<(string, string, string, ExcelProcessor)>
         {
             // ("Excel文件路径", "Sheet名称", "输出JSON路径", ExcelProcessor实例)
-            (excelBasePath, "DB1", Path.Combine(jsonOutputDir,"DB1.json"),
-                new ExcelProcessor(new ParserConfig())),
+            //(excelBasePath, "DB1", Path.Combine(jsonOutputDir,"DB1.json"),
+            //    new ExcelProcessor(new ParserConfig())),
             (excelBasePath, "DB2", Path.Combine(jsonOutputDir,"DB2.json"),
                 new ExcelProcessor(new ParserConfig())),
             (excelBasePath, "DB4", Path.Combine(jsonOutputDir,"DB4.json"),
@@ -48,12 +51,20 @@ try
                 {
                     StartRow=8 // DB21表格起始行不同
                 })),
+            // //测试环境M区地址偏移量为1000，正式环境不需要
+            //(excelBasePath, "MArea_NoAlarm", Path.Combine(jsonOutputDir,"MArea_NoAlarm.json"),
+            //    new ExcelProcessor(new ParserConfig()
+            //    {MAreaBaseOffset=1000})),
+            //(excelBasePath, "MArea_Alarm", Path.Combine(jsonOutputDir,"MArea_Alarm.json"),
+            //    new ExcelProcessor(new ParserConfig()
+            //    {MAreaBaseOffset=1000})),
+            // 正式环境M区地址不需要偏移
             (excelBasePath, "MArea_NoAlarm", Path.Combine(jsonOutputDir,"MArea_NoAlarm.json"),
                 new ExcelProcessor(new ParserConfig()
-                {MAreaBaseOffset=1000})),
+                )),
             (excelBasePath, "MArea_Alarm", Path.Combine(jsonOutputDir,"MArea_Alarm.json"),
                 new ExcelProcessor(new ParserConfig()
-                {MAreaBaseOffset=1000})),
+                )),
         };
         foreach ((var excelPath, var sheetName, var outputPath, var processor) in values)
         {

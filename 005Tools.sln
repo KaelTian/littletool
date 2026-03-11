@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyMessageHub", "EasyMessa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tools.Tests.Unit", "Tools.Tests.Unit\Tools.Tests.Unit.csproj", "{CE963F0B-D463-4332-9463-22489DA5486E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NPOI.Demo", "NPOI.Demo\NPOI.Demo.csproj", "{7BD87FAB-78A0-4459-A3BC-51CFC1EC6B2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{CE963F0B-D463-4332-9463-22489DA5486E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE963F0B-D463-4332-9463-22489DA5486E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE963F0B-D463-4332-9463-22489DA5486E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BD87FAB-78A0-4459-A3BC-51CFC1EC6B2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BD87FAB-78A0-4459-A3BC-51CFC1EC6B2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BD87FAB-78A0-4459-A3BC-51CFC1EC6B2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BD87FAB-78A0-4459-A3BC-51CFC1EC6B2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
