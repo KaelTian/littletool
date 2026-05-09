@@ -1,4 +1,4 @@
-﻿// 构造测试数据
+﻿
 using NPOI.Demo;
 
 Dictionary<string, object> content = new Dictionary<string, object>
@@ -399,3 +399,10 @@ string filePathNew = Path.Combine(desktopPath, "测试数据_新逻辑.xlsx");
 ExcelFileGenerator.ExportMultipleSheets(content, filePathNew, showRowIndex: true);
 
 Console.WriteLine($"已生成文件：{filePathNew}");
+
+//float v1 = 1.30000001874464E-08f;
+
+//decimal val = Convert.ToDecimal(v1);
+//double d1 = (double)val;
+
+//Console.ReadLine();

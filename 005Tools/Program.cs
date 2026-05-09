@@ -73,53 +73,68 @@ using Tool.Service;
 //}
 
 
-var Quote = "\"";
+//var Quote = "\"";
 
-List<string> points = new List<string>
+//List<string> points = new List<string>
+//{
+//    "FLAG_ALM_1.x0",
+//    "FLAG_ALM_1.x1",
+//    "气源ok",
+//    "使能ok",
+//    "Gantry.enabled",
+//    "Gantry.homed",
+//    "Gantry.ActVelocity",
+//    "Gantry.ActPosition",
+//    "浸泡位置左涂头间距相对设定高度"
+//};
+
+//List<string> transformValues = new List<string>
+//{
+
+//};
+//foreach (var point in points)
+//{
+//    string tag = string.Join('.', point.Split(".").Select(x =>
+//    {
+//        string result;
+//        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(x, @"(\w+)(\[(\d+)\])");
+//        if (match.Success)
+//        {
+//            result = $"{Quote}{match.Groups[1].Value}{Quote}[{match.Groups[3].Value}]";
+//        }
+//        else
+//        {
+//            result = $"{Quote}{x}{Quote}";
+//        }
+//        return result;
+//    }));
+
+//    transformValues.Add(tag);
+//}
+
+//Console.WriteLine("转换结果:");
+//foreach (var item in transformValues)
+//{
+//    Console.WriteLine(item);
+//}
+
+//Console.WriteLine("按任意键退出...");
+//Console.ReadKey();
+
+
+
+try
 {
-    "FLAG_ALM_1.x0",
-    "FLAG_ALM_1.x1",
-    "气源ok",
-    "使能ok",
-    "Gantry.enabled",
-    "Gantry.homed",
-    "Gantry.ActVelocity",
-    "Gantry.ActPosition",
-    "浸泡位置左涂头间距相对设定高度"
-};
-
-List<string> transformValues = new List<string>
+    var form = new FrmMain();
+    form.FormClosed += (s, e) => Console.WriteLine("主窗体已关闭");
+    Application.Run(form);
+}
+catch (Exception ex)
 {
-
-};
-foreach (var point in points)
-{
-    string tag = string.Join('.', point.Split(".").Select(x =>
-    {
-        string result;
-        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(x, @"(\w+)(\[(\d+)\])");
-        if (match.Success)
-        {
-            result = $"{Quote}{match.Groups[1].Value}{Quote}[{match.Groups[3].Value}]";
-        }
-        else
-        {
-            result = $"{Quote}{x}{Quote}";
-        }
-        return result;
-    }));
-
-    transformValues.Add(tag);
+    Console.WriteLine($"错误: {ex.Message}");
+    Console.WriteLine(ex.StackTrace);
 }
 
-Console.WriteLine("转换结果:");
-foreach (var item in transformValues)
-{
-    Console.WriteLine(item);
-}
-
-Console.WriteLine("按任意键退出...");
-Console.ReadKey();
 
 void KeyboardTest()
 {
