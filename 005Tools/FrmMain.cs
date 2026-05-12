@@ -37,8 +37,8 @@
             {
                 bool isOn = btn2.Checked;
 
-                MessageBox.Show($"Maint. 按钮 {(isOn ? "按下" : "抬起")}");
-
+                //MessageBox.Show($"Maint. 按钮 {(isOn ? "按下" : "抬起")}");
+                Console.WriteLine($"Maint. 按钮 {(isOn ? "按下" : "抬起")}");
 
                 //// 视觉上：其他按钮跟着变灰/可用
                 //somePanel.Enabled = isOn;
@@ -79,11 +79,16 @@
 
         private void button3d1_CheckedChanged(object sender, EventArgs e)
         {
-            var btn = sender as Button3D;
+            //var btn = sender as Button3D;
 
-            bool isOn = btn.Checked;
+            //bool isOn = btn.Checked;
 
-            MessageBox.Show($"button3d1. 按钮 {(isOn ? "按下" : "抬起")}");
+            //MessageBox.Show($"button3d1. 按钮 {(isOn ? "按下" : "抬起")}");
+        }
+
+        private void button3d1_Click(object sender, EventArgs e)
+        {
+            textBox1.Text += "123";
         }
     }
 }

@@ -125,7 +125,7 @@ using Tool.Service;
 
 try
 {
-    var form = new FrmMain();
+    var form = new Form1();
     form.FormClosed += (s, e) => Console.WriteLine("主窗体已关闭");
     Application.Run(form);
 }

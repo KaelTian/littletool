@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             button3d1 = new Button3D();
+            button3d2 = new Button3D();
+            textBox1 = new TextBox();
             SuspendLayout();
             // 
             // button3d1
@@ -49,21 +51,48 @@
             button3d1.ToggleMode = true;
             button3d1.UseVisualStyleBackColor = false;
             button3d1.CheckedChanged += button3d1_CheckedChanged;
+            button3d1.Click += button3d1_Click;
+            // 
+            // button3d2
+            // 
+            button3d2.BackColor = Color.FromArgb(240, 240, 240);
+            button3d2.FlatAppearance.BorderSize = 0;
+            button3d2.FlatStyle = FlatStyle.Flat;
+            button3d2.Font = new Font("Microsoft YaHei", 9F);
+            button3d2.ForeColor = Color.Black;
+            button3d2.Location = new Point(191, 249);
+            button3d2.Name = "button3d2";
+            button3d2.Size = new Size(194, 122);
+            button3d2.TabIndex = 1;
+            button3d2.Text = "button3d2";
+            button3d2.UseVisualStyleBackColor = false;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(496, 265);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(234, 27);
+            textBox1.TabIndex = 2;
             // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(textBox1);
+            Controls.Add(button3d2);
             Controls.Add(button3d1);
             Name = "FrmMain";
             Text = "FrmMain";
             Load += FrmMain_Load;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private Button3D button3d1;
+        private Button3D button3d2;
+        private TextBox textBox1;
     }
 }

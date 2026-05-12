@@ -154,9 +154,28 @@ namespace _005Tools
 
             // 1. 背景
             Color bg = BackColor;
-            if (!Enabled) bg = Color.FromArgb(220, 220, 220);
-            else if (isDepressed) bg = ControlPaint.Dark(BackColor, 0.12f);  // 按下状态略深
-            else if (_isHovered) bg = ControlPaint.Light(BackColor, 0.08f);
+            if (!Enabled)
+            {
+                bg = Color.FromArgb(220, 220, 220);
+            }
+            else if (isDepressed)// 按下状态略深
+            {
+                bg = ControlPaint.Dark(BackColor, 0.12f);
+            }
+            else if (_isHovered)
+            {
+                // 方案1：加亮 25%，变化明显
+                bg = ControlPaint.Light(BackColor, 0.35f);
+
+                //// 方案2：如果你希望是"发光感"而不是单纯变淡
+                //// 可以手动往白色偏移，效果更通透
+                //bg = Color.FromArgb(
+                //    Math.Min(255, BackColor.R + 35),
+                //    Math.Min(255, BackColor.G + 35),
+                //    Math.Min(255, BackColor.B + 35));
+
+
+            }
 
             using (var brush = new SolidBrush(bg))
                 g.FillRectangle(brush, rect);
