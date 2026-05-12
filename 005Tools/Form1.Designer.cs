@@ -28,32 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            sx = new VerticalGauge();
             SuspendLayout();
-            // 
-            // sx
-            // 
-            sx.BackColor = Color.White;
-            sx.Font = new Font("Microsoft YaHei", 9F);
-            sx.Location = new Point(946, 102);
-            sx.Name = "sx";
-            sx.ScaleBackColor = Color.FromArgb(128, 0, 128);
-            sx.Size = new Size(177, 448);
-            sx.TabIndex = 0;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(9F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1166, 658);
-            Controls.Add(sx);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
         }
 
         #endregion
-
-        private VerticalGauge sx;
     }
 }

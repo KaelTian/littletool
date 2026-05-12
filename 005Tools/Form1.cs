@@ -20,7 +20,9 @@
                 WarnValue = 10,
                 ErrorValue = 15,
                 Unit = "A",
-                DecimalPlaces = 0
+                // 保留小数点 正整数就是保留位数，但如果是整数则不显示小数点，-1就是自己去进行判断
+                // 默认- 1
+                DecimalPlaces = -1
             };
             Controls.Add(gauge);
 
@@ -46,13 +48,25 @@
 
         private void Apply()
         {
+            // 先全部更新数值，最后统一强制重绘，避免异步 Paint 抓到中间态
             gauge.MinValue = Parse(txtMin.Text);
             gauge.MaxValue = Parse(txtMax.Text);
             gauge.WarnValue = Parse(txtWarn.Text);
             gauge.ErrorValue = Parse(txtErr.Text);
+
+            // ── 关键：强制立即同步重绘，不要等消息队列 ──
+            gauge.Refresh();
         }
 
-        private float Parse(string s) => float.TryParse(s, out float v) ? v : 0f;
+        // ── 关键：用 InvariantCulture 确保 "." 小数点稳定解析 ──
+        private float Parse(string s)
+        {
+            return float.TryParse(s,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out float v) ? v : 0f;
+        }
+
 
         private void AddLabel(string text, int x, int y)
         {
