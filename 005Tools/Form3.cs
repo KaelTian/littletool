@@ -55,5 +55,10 @@ namespace _005Tools
             };
             this.Controls.Add(arrow3);
         }
+
+        private void navigationArrow1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

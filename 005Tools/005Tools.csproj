@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="FluentFTP" Version="54.1.2" />
     <PackageReference Include="NModbus" Version="3.0.81" />
+    <PackageReference Include="ScottPlot.WinForms" Version="5.1.59" />
   </ItemGroup>
 
   <ItemGroup>

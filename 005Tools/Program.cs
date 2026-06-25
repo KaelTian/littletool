@@ -125,7 +125,7 @@ using Tool.Service;
 
 try
 {
-    var form = new Form3();
+    var form = new TrendChartForm();
     form.FormClosed += (s, e) => Console.WriteLine("主窗体已关闭");
     Application.Run(form);
 }

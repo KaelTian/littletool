@@ -29,21 +29,33 @@
         private void InitializeComponent()
         {
             navigationArrow1 = new NavigationArrow();
+            button1 = new Button();
             SuspendLayout();
             // 
             // navigationArrow1
             // 
             navigationArrow1.BackColor = Color.Transparent;
+            navigationArrow1.Direction = ArrowDirection.Left;
             navigationArrow1.LineColor = Color.FromArgb(255, 215, 0);
             navigationArrow1.LineLength = 229;
             navigationArrow1.LineThickness = 4;
-            navigationArrow1.Location = new Point(364, 343);
+            navigationArrow1.Location = new Point(335, 342);
             navigationArrow1.MarkerFill = false;
             navigationArrow1.MarkerSize = 12;
             navigationArrow1.Name = "navigationArrow1";
             navigationArrow1.Size = new Size(245, 16);
             navigationArrow1.TabIndex = 0;
             navigationArrow1.Text = "navigationArrow1";
+            navigationArrow1.Click += navigationArrow1_Click;
+            // 
+            // button1
+            // 
+            button1.Location = new Point(217, 327);
+            button1.Name = "button1";
+            button1.Size = new Size(112, 50);
+            button1.TabIndex = 1;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
             // 
             // Form3
             // 
@@ -51,6 +63,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1058, 527);
             Controls.Add(navigationArrow1);
+            Controls.Add(button1);
             Name = "Form3";
             Text = "Form3";
             ResumeLayout(false);
@@ -59,5 +72,6 @@
         #endregion
 
         private NavigationArrow navigationArrow1;
+        private Button button1;
     }
 }
