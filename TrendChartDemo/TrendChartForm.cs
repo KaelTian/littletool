@@ -4,7 +4,7 @@ using Color = System.Drawing.Color;
 using FontStyle = System.Drawing.FontStyle;
 using Label = System.Windows.Forms.Label;
 
-namespace _005Tools
+namespace TrendChartDemo
 {
     public class TrendChartForm : Form
     {
@@ -55,7 +55,8 @@ namespace _005Tools
             this.BackColor = Color.LightGray;
 
             InitializeUI();
-            InitializePlot();
+            //InitializePlot();
+            InitializePlotStyle();
             GenerateMockHistoryData();
             StartRealtimeMode();
         }
@@ -190,16 +191,53 @@ namespace _005Tools
             this.Controls.SetChildIndex(_formsPlot, 0);
 
             // ========== 工业风配色（还原截图风格） ==========
-            _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#C0C0C0"); // 整体背景灰
-            _formsPlot.Plot.DataBackground.Color = ScottPlot.Color.FromHex("#DCDCDC");  // 绘图区浅灰
-            _formsPlot.Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#A9A9A9"); // 网格深灰
+            _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#C0C0C0");
+            _formsPlot.Plot.DataBackground.Color = ScottPlot.Color.FromHex("#DCDCDC");
+            _formsPlot.Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#A9A9A9");
             _formsPlot.Plot.Grid.MinorLineColor = ScottPlot.Color.FromHex("#C0C0C0");
-            _formsPlot.Plot.Axes.Color(ScottPlot.Color.FromHex("#333333"));            // 轴线颜色
+            _formsPlot.Plot.Axes.Color(ScottPlot.Color.FromHex("#333333"));
 
-            // 标题和轴标签
+            //// ========== 中文字体设置（解决方框） ==========
+            //string cnFont = "SimSun"; // 如果系统没有微软雅黑，可换成 "SimHei" 或 "SimSun"
+
+            //// ========== 全局统一中文字体，彻底解决方框 ==========
+            //// 优先微软雅黑，没有则宋体/黑体 Microsoft YaHei
+            //// 宋体 SimSun
+            //// 黑体 SimHei
+            //// 1. 定义中文字体名称
+            string fontName = "SimSun"; // 微软雅黑
+
+            //// 2. 告诉 ScottPlot 的字体管理器默认使用该中文字体（非常关键，解决刻度乱码）
+            //ScottPlot.Fonts.Default = fontName;
+
+            // 1. 找到系统中的微软雅黑字体路径
+            string fontPath = @"C:\Windows\Fonts\simsun.ttc"; // 微软雅黑 msyh.ttc（如果是宋体则是 simsun.ttc）
+
+            // 如果文件存在，强制注册并设置为默认字体
+            if (System.IO.File.Exists(fontPath))
+            {
+                // 调用 ScottPlot 的字体加载方法（此方法会自动将其注册到全局）
+                ScottPlot.Fonts.AddFontFile("simsun.ttc", fontPath);
+
+                // 将其设为全局默认字体
+                ScottPlot.Fonts.Default = fontName;
+            }
+            else
+            {
+                // 备用方案：如果不是 Windows 系统，可以把 msyh.ttc 复制到程序根目录下直接加载
+                // ScottPlot.Fonts.AddFontFile("msyh.ttc");
+            }
+
+
+            // 标题 & 轴标题
+            // 3. 设置标题和轴标签（显式指定 fontName 确保万无一失）
             _formsPlot.Plot.Title("实时趋势", size: 16);
             _formsPlot.Plot.YLabel("数值", size: 12);
             _formsPlot.Plot.XLabel("时间", size: 12);
+
+            //// 刻度文字
+            //_formsPlot.Plot.Axes.Bottom.TickLabelStyle.FontName = cnFont;
+            //_formsPlot.Plot.Axes.Left.TickLabelStyle.FontName = cnFont;
 
             // 固定 Y 轴 0-30（匹配截图纵轴）
             _formsPlot.Plot.Axes.Left.Min = 0;
@@ -208,21 +246,32 @@ namespace _005Tools
             // 禁用默认右键菜单（工业上位机风格）
             _formsPlot.Menu?.Clear();
 
-            // ========== ScottPlot 5 自定义时间轴刻度格式 ==========
-            // ScottPlot 5 没有 TickLabelStyle.Format 属性，
-            // 需通过 RenderStarting 事件在渲染前重写 tick 标签文本
+            // ========== 关键：使用 DateTimeAutomatic（解决时间轴密度） ==========
+            // 把默认的 NumericAutomatic 换成 DateTimeAutomatic，
+            // 它会按"时间语义"智能选择间隔（如 30秒、1分钟、30分钟），不会一股脑生成一堆 tick
+            _formsPlot.Plot.Axes.Bottom.TickGenerator = new ScottPlot.TickGenerators.DateTimeAutomatic();
+
+            // ========== 自定义时间格式（在 DateTimeAutomatic 基础上微调显示格式） ==========
             _formsPlot.Plot.RenderManager.RenderStarting += (s, e) =>
             {
                 var ticks = _formsPlot.Plot.Axes.Bottom.TickGenerator.Ticks;
+                if (ticks.Length == 0) return;
+
                 for (int i = 0; i < ticks.Length; i++)
                 {
                     DateTime dt = DateTime.FromOADate(ticks[i].Position);
                     string label = _currentMode == TrendMode.Realtime
-                        ? dt.ToString("HH:mm:ss")
+                        ? dt.ToString("MM-dd HH:mm:ss")
                         : dt.ToString("MM-dd HH:mm");
                     ticks[i] = new Tick(ticks[i].Position, label);
                 }
             };
+
+            // 4. 【针对 5.x 特性】如果轴刻度（数字或自定义时间）依然有乱码，可遍历各轴进行字体替换
+            foreach (var axis in _formsPlot.Plot.Axes.GetAxes())
+            {
+                axis.Label.FontName = fontName;
+            }
 
             _formsPlot.Refresh();
         }
@@ -328,7 +377,8 @@ namespace _005Tools
             _isPlaying = false;
             _playTimer?.Stop();
 
-            RefreshRealtimePlot();
+            //RefreshRealtimePlot();
+            BindCurveData();
         }
 
         private void RealtimeTimer_Tick(object sender, EventArgs e)
@@ -341,14 +391,15 @@ namespace _005Tools
             _rtTimes.Add(now);
             _rtValues.Add(value);
 
-            // 只保留最近 5 分钟（300 个点），模拟滚动显示
-            if (_rtTimes.Count > 300)
+            // 只保留最近 1 分钟（61 个点），模拟滚动显示
+            if (_rtTimes.Count > 61)
             {
                 _rtTimes.RemoveAt(0);
                 _rtValues.RemoveAt(0);
             }
 
-            RefreshRealtimePlot();
+            //RefreshRealtimePlot();
+            BindCurveData();
         }
 
         private void RefreshRealtimePlot()
@@ -363,9 +414,9 @@ namespace _005Tools
                 scatter.MarkerSize = 3;
                 scatter.Color = ScottPlot.Color.FromHex("#0066CC");
 
-                // X 轴自动滚动：始终显示最近 2 分钟窗口
+                // X 轴自动滚动：始终显示最近 1 分钟窗口
                 DateTime maxTime = _rtTimes[_rtTimes.Count - 1];
-                DateTime minTime = maxTime.AddMinutes(-2);
+                DateTime minTime = maxTime.AddMinutes(-1);
                 _formsPlot.Plot.Axes.SetLimitsX(minTime.ToOADate(), maxTime.AddSeconds(5).ToOADate());
             }
 
@@ -577,6 +628,191 @@ namespace _005Tools
             _playTimer?.Stop();
             _playTimer?.Dispose();
             base.OnFormClosing(e);
+        }
+
+        // ==================== 2. 样式初始化（只执行一次） ====================
+        private void InitializePlotStyleKiMi()
+        {
+            // 纵轴：范围 0~30，固定间隔 5，显示格式 0.00 / 5.00 ...
+            var yAxis = _formsPlot.Plot.Axes.Left;
+            yAxis.Range.Set(0, 30);                       // 固定范围
+            yAxis.TickGenerator = new ScottPlot.TickGenerators.NumericFixedInterval(5)
+            {
+                LabelFormatter = (v) => v.ToString("F2") // 两位小数
+            };
+
+            // 横轴标签旋转，防止时间字符串重叠
+            var xAxis = _formsPlot.Plot.Axes.Bottom;
+            xAxis.TickLabelStyle.Rotation = 35;
+            xAxis.TickLabelStyle.Alignment = ScottPlot.Alignment.MiddleRight;
+
+            // 曲线区域留白一点边距，看起来更舒服
+            _formsPlot.Plot.Axes.Margins(0.05, 0.1);
+        }
+
+        // ==================== 3. 数据绑定（赋值逻辑 + 横轴刻度） ====================
+        /// <summary>
+        /// 传入PLC电流记录集合，自动完成横轴每10秒一刻度 + 曲线绘制
+        /// </summary>
+        public void BindCurveDataKiMi()
+        {
+
+            // 3.1 数据转 double[]（DateTime 必须转 OADate，这是 ScottPlot 的坐标单位）
+            double[] xs = _rtTimes.Select(r => r.ToOADate()).ToArray();
+            double[] ys = _rtValues.ToArray();
+
+            // 3.2 清除旧曲线，添加新曲线
+            _formsPlot.Plot.Clear();
+            var scatter = _formsPlot.Plot.Add.Scatter(xs, ys);
+            scatter.LineWidth = 2.5f;
+            scatter.MarkerSize = 0;          // 只画线，不画点（PLC数据密集，点太多会乱）
+            scatter.Color = ScottPlot.Colors.Blue;
+
+            // 3.3 横轴范围：严格按数据首尾时间（也可自行加减边距）
+            var xAxis = _formsPlot.Plot.Axes.Bottom;
+            xAxis.Range.Set(xs.First(), xs.Last());
+
+            // 3.4 横轴刻度：每10秒一个，格式 MM-dd HH:mm:ss
+            // 10秒 = 10/86400 天（OADate 的计量单位是天）
+            double intervalDays = 10.0 / 86400.0;
+
+            // 对齐到"整10秒"：例如 12:00:07 对齐到 12:00:10
+            DateTime first = _rtTimes.First();
+            DateTime aligned = new DateTime(first.Year, first.Month, first.Day,
+                                            first.Hour, first.Minute, (first.Second / 10) * 10);
+            if (aligned < first) aligned = aligned.AddSeconds(10);
+
+            DateTime last = _rtTimes.Last();
+
+            List<double> tickPositions = new();
+            List<string> tickLabels = new();
+
+            for (DateTime t = aligned; t <= last; t = t.AddSeconds(10))
+            {
+                tickPositions.Add(t.ToOADate());
+                tickLabels.Add(t.ToString("MM-dd HH:mm:ss"));
+            }
+
+            // 应用手动刻度（最稳，完全可控位置和标签）
+            if (tickPositions.Count > 0)
+            {
+                xAxis.TickGenerator = new ScottPlot.TickGenerators.NumericManual(
+                    tickPositions.ToArray(),
+                    tickLabels.ToArray()
+                );
+            }
+
+            // 3.5 刷新
+            _formsPlot.Refresh();
+        }
+
+        /// <summary>
+        /// 初始化图表样式（仅在 Form_Load 或构造函数中调用一次）
+        /// </summary>
+        public void InitializePlotStyle()
+        {
+            _formsPlot = new FormsPlot
+            {
+                Dock = DockStyle.Fill
+            };
+            // 将图表控件插入到右侧面板之前（确保层级正确）
+            this.Controls.Add(_formsPlot);
+            this.Controls.SetChildIndex(_formsPlot, 0);
+
+            // ========== 工业风配色（还原截图风格） ==========
+            _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#C0C0C0");
+            _formsPlot.Plot.DataBackground.Color = ScottPlot.Color.FromHex("#DCDCDC");
+            _formsPlot.Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#A9A9A9");
+            _formsPlot.Plot.Grid.MinorLineColor = ScottPlot.Color.FromHex("#C0C0C0");
+            _formsPlot.Plot.Axes.Color(ScottPlot.Color.FromHex("#333333"));
+
+            // ==================== 1. 横坐标轴初始设置 (X Axis) ====================
+            // 5.x 中如果每次都在 BindCurveData 里手动设置刻度，这里不需要额外配置
+            // 如需启用自动时间轴，用：_formsPlot.Plot.Axes.DateTimeTicksBottom();
+
+            // ==================== 2. 纵坐标轴固定设置 (Y Axis) ====================
+            // 5.x 用 AxisRules 锁定纵轴范围，防止用户缩放时跑出 0~30
+            var lockedVerticalRule = new ScottPlot.AxisRules.LockedVertical(
+                _formsPlot.Plot.Axes.Left, yMin: 0, yMax: 30);
+            _formsPlot.Plot.Axes.Rules.Add(lockedVerticalRule);
+
+            // 设置默认显示范围
+            _formsPlot.Plot.Axes.SetLimitsY(0, 30);
+
+            // 自定义 Y 轴刻度：0, 5, 10, 15, 20, 25, 30
+            double[] yTicks = new double[] { 0, 5, 10, 15, 20, 25, 30 };
+            string[] yLabels = yTicks.Select(y => y.ToString("F2")).ToArray();
+
+            // 5.x 手动刻度用 SetTicks
+            _formsPlot.Plot.Axes.Left.SetTicks(yTicks, yLabels);
+
+            // ==================== 3. 交互限制 ====================
+            // 5.x 禁用所有鼠标交互（Pan + Zoom）
+            _formsPlot.UserInputProcessor.Disable();
+
+            // 初始刷新一次
+            _formsPlot.Refresh();
+        }
+
+        /// <summary>
+        /// 实时绑定曲线数据（每次 PLC 数据更新时调用）
+        /// </summary>
+        public void BindCurveData()
+        {
+            if (_rtTimes.Count == 0) return;
+
+            // 1. 清理旧曲线
+            _formsPlot.Plot.Clear();
+
+            // 2. 转换数据源
+            double[] xs = _rtTimes.Select(r => r.ToOADate()).ToArray();
+            double[] ys = _rtValues.ToArray();
+
+            // 3. 绘制曲线
+            var scatter = _formsPlot.Plot.Add.Scatter(xs, ys);
+
+
+            // 最右侧显示当前值标注
+            var lastX = _rtTimes.Last().ToOADate();
+            var lastY = _rtValues.Last();
+
+            var txt = _formsPlot.Plot.Add.Text($"{lastY:F2}A", new ScottPlot.Coordinates(lastX, lastY));
+            txt.LabelFontSize = 12;
+            txt.LabelBold = true;
+            txt.LabelFontColor = ScottPlot.Color.FromHex("#333333");
+            txt.OffsetX = 10;
+            txt.OffsetY = -10;
+
+            scatter.MarkerStyle.Size = 3;
+            scatter.LineStyle.Width = 2;
+
+            // 4. ✅ 固定 7 个刻度：0,10,20,30,40,50,60 秒（6 个间隔，覆盖 60 秒）
+            DateTime startTime = _rtTimes.Min();
+            const int tickCount = 7;
+            double[] xTicks = new double[tickCount];
+            string[] xLabels = new string[tickCount];
+
+            for (int i = 0; i < tickCount; i++)
+            {
+                DateTime tickTime = startTime.AddSeconds(i * 10);
+                xTicks[i] = tickTime.ToOADate();
+                xLabels[i] = tickTime.ToString("MM-dd HH:mm:ss");
+            }
+
+            // 5. 手动设置 X 轴刻度
+            _formsPlot.Plot.Axes.Bottom.SetTicks(xTicks, xLabels);
+
+            // 6. ✅ 固定 10 秒对应的 OADate 差值，不依赖数组索引
+            double tickSpan = TimeSpan.FromSeconds(10).TotalDays;
+            double margin = tickSpan * 0.5;  // 左右各留 5 秒空白
+
+            // 7. ✅ 左右留白：xTicks[6] 是 60 秒刻度，数据终点正好对齐这里
+            _formsPlot.Plot.Axes.SetLimitsX(
+                xTicks[0] - margin,   // 左侧留白
+                xTicks[6] + margin);  // 右侧留白（60 秒刻度外侧）
+
+            // 8. 刷新
+            _formsPlot.Refresh();
         }
     }
 }
